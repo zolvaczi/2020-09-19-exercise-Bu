@@ -35,4 +35,39 @@
 <li>The JSON file structure will remain the same in any follow on exercise.</li>
 </ul>
 
+## Analysis
+1. edge cases considered*
+    1. data points
+        1. bill date is an exact date match with a reading date
+        1. extrapolation from last two readings
+        1. only one reading is available (assumption: this is not an error, only standing charge applied in this case*) 
+        1. no data points at all (assumption: this is an error*)
+    1. bill dates
+        1. end of month
+        1. not the last day of a month
+        1. no date specified: current month's last day (assumption*)
+    1. meters: member has 
+        1. gas meter
+        1. electricity meter
+        1. both
+        1. none (assumption: this is an error*)
+    1. accounts
+        1. member has one account
+        1. member has more accounts
+        1. member has no account (assumption: this is an error*)
+    1. units
+        1. electricity/gas consumption specified in kWh
+        1. gas consumption specified in cubic meters (assumption*)
 
+*assumed edge case should be verified and approved by the product manager before implementation
+    
+## Further Assumptions
+1. It is assumed that the datasource is static during the runtime of this application, and therefore it is only read once.
+1. extrapolation to past values is not a supported business logic use-case
+1. VAT is not considered by this function, it will be applied to the total bill by a higher-level module/function (which can be adjusted by discounts, for instance)
+1. scaling was not considered at this level of implementation, scalability could be solved at a higher level of the architecture, e.g. to decompose requests to processing individual members or smaller batches of members, with data partitioning...
+1. linear inter-/extrapolation is sufficient, however it should be easy to change to a different method should there be a specific future business requirement.
+1. Leaving customers need a final bill, so bill dates may fall to other than last day of month
+
+## Further Considerations
+1. Use third-party/standard libraries for interpolation and extrapolation (`numpy`, etc.)
