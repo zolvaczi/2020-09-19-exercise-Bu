@@ -37,8 +37,19 @@
 
 ## Analysis
 ###Problem breakdown:
-1. Low-level: calculate consumption and charges from a single series of meter readings
-1. Higher-level: apply the above to each meter and each account of the member
+1. Low-level: calculate consumption and charges from a single series of meter readings (`calculate_meter_bill` function)
+1. Higher-level: apply the above to each meter and each account of the member (`calculate_bill` function)
+
+### Further Assumptions and Known Limitations
+1. Due to the lack of JSON schema and the minimal JSON sample, the generic JSON schema was guessed.
+1. It is assumed that the datasource is static during the runtime of this application, and therefore it is only read once.
+1. only one reading (starting reading) is assumed to be an invalid use-case for billing
+1. VAT is not considered by this function, it could be applied to the total bill by a higher-level module/function (where the total can be adjusted by discounts, for instance)
+1. scaling was not considered at this level of implementation, scalability could be solved at a higher level of the architecture, e.g. by decomposing requests to process individual members or smaller batches of members in parallel, with data partitioning...
+1. Leaving customers need a final bill, in which case billing date may fall to other than the last day of the month
+1. abstraction: normally, I would implement some sort of interface class to access the data, to decouple the business logic from the underlying data structure + datasource implementation (see assumption "The JSON file structure will remain the same")
+1. no conversion from gas cubic meters to kWh has been implemented, as the formula was not specified
+1. a limitation of the solution is that the monthly bills will not always exactly add up to a yearly total consumption if some of the readings are not provided on the billing dates (but mid month, for instance). The solution to this limitation would be to also record the estimated readings on the billing date, and use those the calculate the new consumption for the next billing period.  Rounding errors can also accumulate over a year due to the 2-decimals precision (pence) used.
 
 ###Edge cases considered
 1. data points
@@ -51,11 +62,11 @@
     1. not the last day of a month
     1. no date specified  (assumption: this is an error*)
     1. test for leap years
-1. yearly total charges == sum of monthly bills (roughly: max rounding error: 12*.5=6 kWh, and 12*£0.005*2=£0.12)
+1. yearly total charges == sum of monthly bills (roughly: max rounding error: 12 * 0.5= `6 kWh`, and 12 * £0.005 * 2= `£0.12`)
 1. meters: member has 
     1. gas meter
     1. electricity meter
-    1. both
+    1. dual fuel
     1. none (assumption: this is an error*)
 1. accounts
     1. member has one account
@@ -65,14 +76,5 @@
     1. electricity/gas consumption specified in kWh
     1. gas consumption specified in cubic meters (conversion formula to be provided*)
 
-*normally, assumed edge case should be verified and approved by the product manager before implementation
-    
-## Further Assumptions
-1. No JSON schema has been provided and the JSON sample was very small, therefore the structure had be guessed.
-1. It is assumed that the datasource is static during the runtime of this application, and therefore it is only read once.
-1. extrapolation to a date before first available reading is not a valid business logic use-case
-1. only one reading (starting reading) is assumed to be an invalid use-case for billing
-1. VAT is not considered by this function, it could be applied to the total bill by a higher-level module/function (where the total can be adjusted by discounts, for instance)
-1. scaling was not considered at this level of implementation, scalability could be solved at a higher level of the architecture, e.g. to decompose requests to processing individual members or smaller batches of members parallel, with data partitioning...
-1. Leaving customers need a final bill, in which case billing date may fall to other than last day of the month
-1. abstraction: normally, I would implement some sort of interface class to access the data, to decouple it from the underlying data structure + datasource implementation (see assumption "The JSON file structure will remain the same")
+*normally, edge cases should be verified with the product manager before implementation
+   
