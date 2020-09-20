@@ -4,6 +4,7 @@ Higher-level: apply the above to each meter and each account of the member (calc
 """
 
 from dateutil.parser import parse
+import pytz
 import load_readings
 import tariff
 
@@ -16,7 +17,7 @@ class InsufficientNumberOfReadings(Exception):
     """Raised when there is less than 2 readings which is necessary to calculate the consumption"""
 
 class InvalidBillingDate(Exception):
-    """Raised when there is less than 2 readings which is necessary to calculate the consumption"""
+    """Wrong billing date format"""
     def __init__(self, billing_date):
         self.billing_date=billing_date
 
@@ -24,12 +25,17 @@ def calculate_meter_bill(fuel_type, meter_readings, bill_date):
     """A 2-sample linear extrapolation to calculate the meter's consumption and charge"""
     # converting dates to datetime:
     try:
-        bill_date_dt = parse(bill_date, ignoretz=True)
+        #Note: the following is dangerous, you should never do this in a production server.
+        # Timezone should be properly specified in the input. This code challenge is about a backend system,
+        #        and the best practice for machine-2-machine interfaces is to always include TZ information.
+        # In a front-end application, input from a user should be assumed to be local time and for instance,
+        #       parse(bill_date).astimezone(pytz.UTC) would correctly adjust the time to UTC from local time
+        bill_date_dt = parse(bill_date).replace(tzinfo=pytz.UTC)
     except:
         raise InvalidBillingDate(bill_date)
 
     for r in meter_readings:
-        r['dt'] = parse(r['readingDate'], ignoretz=True)
+        r['dt'] = parse(r['readingDate'])
     past_readings = [r for r in meter_readings if r['dt'] <= bill_date_dt]
     if len(past_readings) < 2:
         raise InsufficientNumberOfReadings()

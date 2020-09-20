@@ -49,7 +49,7 @@
 1. Leaving customers need a final bill, in which case billing date may fall to other than the last day of the month
 1. abstraction: normally, I would implement some sort of interface class to access the data, to decouple the business logic from the underlying data structure + datasource implementation (see assumption "The JSON file structure will remain the same")
 1. no conversion from gas cubic meters to kWh has been implemented, as the formula was not specified
-1. a limitation of the solution is that the monthly bills will not always exactly add up to a yearly total consumption if some of the readings are not provided on the billing dates (but mid month, for instance). The solution to this limitation would be to also record the estimated readings on the billing date, and use those the calculate the new consumption for the next billing period.  Rounding errors can also accumulate over a year due to the 2-decimals precision (pence) used.
+1. a limitation of the solution is that the monthly bills will not always exactly add up to a yearly total consumption if some of the readings are not provided on the billing dates (but mid month, for instance). The solution to this limitation would be to also record the estimated readings on the billing date, and use those to calculate the new consumption for the next billing period.  Rounding errors can also accumulate over a year due to the 2-decimals precision (pence) used.
 
 ###Edge cases considered
 1. data points
